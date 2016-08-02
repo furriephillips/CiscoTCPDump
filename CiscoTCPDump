@@ -1,0 +1,105 @@
+#!/bin/sh
+#
+## Cisco_TCPDump - Creates CLI syntax for tcpdumping (packet capturing) on a Cisco router
+
+## PARMANENT VARIABLES
+MYPCIP="10.0.2.10"
+
+#
+## Usage
+#
+if [ $# -lt 1 ]; then
+
+  echo ''
+  echo "[31mUsage: [33m$0 <RULENAME> <IP> [<NETMASK> <TFTPSERVER>][0m"
+  echo ''
+  echo "$0 MY-PC ${MYPCIP} 32 my-tftp-server.example.com"
+  echo ''
+
+  exit 127
+
+fi
+
+RULENAME=$1
+IP=$2
+NETMASK=$3
+TFTPSERVER=$4
+DATESTAMP=`date +'%Y%m%d_%H%M'`
+
+if [ "${NETMMASK}" = "27" ]; then
+  WILDCARD="0.0.0.31"
+else
+  WILDCARD="0.0.0.0"
+fi
+
+if [ -z ${TFTPSERVER+x} ]; then
+    TFTPSERVER="my-tftp-server.example.com"
+else
+    echo ''
+    echo "[33mUsing TFTP SERVER ${TFTPSERVER}[0m"
+fi
+
+(
+  echo ''
+  echo "[36m#################"
+  echo '# ON THE ROUTER #'
+  echo "#################[0m"
+  echo ''
+  echo "[33mConfigure an ACL...[0m"
+  echo ''
+  echo 'configure terminal'
+  echo " ip access-list extended acl_${RULENAME}_${DATESTAMP}"
+  echo " deny ip ${IP} ${WILDCARD} any"
+  echo " deny ip any ${IP} ${WILDCARD}"
+  echo ' permit ip any any'
+  echo ' permit ip any any'
+  echo 'end'
+  echo ''
+  echo "[32mSTART the packet capture / monitoring...[0m"
+  echo ''
+  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} size 512 max-size 512 circular"
+  echo "monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
+  echo "monitor capture point associate cap_${RULENAME}_${DATESTAMP} buf_${RULENAME}_${DATESTAMP}"
+  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} filter access-list acl_${RULENAME}_${DATESTAMP}"
+  echo "monitor capture point start cap_${RULENAME}_${DATESTAMP}"
+  echo ''
+  echo "[5;93mWAIT until you have captured what you want...[0m"
+  echo ''
+)
+
+sleep 7
+
+(
+  echo "[31mSTOP the packet capture / monitoring...[0m"
+  echo ''
+  echo "monitor capture point stop cap_${RULENAME}_${DATESTAMP}"
+  echo ''
+  echo "[33mExport to a friendly TFTP server...[0m"
+  echo ''
+  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} export tftp://${TFTPSERVER}/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo ''
+  echo '[33mTidy up...[0m'
+  echo ''
+  echo "no monitor capture buffer buf_${RULENAME}_${DATESTAMP}"
+  echo "no monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
+  echo 'configure terminal'
+  echo " no ip access-list extended acl_${RULENAME}_${DATESTAMP}"
+  echo 'end'
+  echo ''
+  echo "[36m#################"
+  echo '# ON A *NIX CLI #'
+  echo "#################[0m"
+  echo ''
+  echo "[33mUse tcpdump to view the packet capture file (on ${TFTPSERVER})...[0m"
+  echo ''
+  echo "tcpdump -ttttnnr tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo ''
+  echo '[33mor...[0m'
+  echo ''
+  echo "tcpdump -qns 0 -A -r tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo ''
+  echo '[32mDone![0m'
+  echo ''
+)
+
+
