@@ -13,7 +13,7 @@ if [ $# -lt 1 ]; then
   echo ''
   echo -e "\e[31mUsage: \e[33m$0 <RULENAME> <IP> [<NETMASK> <TFTPSERVER>]\e[0m"
   echo ''
-  echo "$0 MY-PC ${MYPCIP} 32 my-tftp-server.example.com"
+  echo -e "$0 MY-PC ${MYPCIP} 32 my-tftp-server.example.com"
   echo ''
 
   exit 127
@@ -43,25 +43,25 @@ fi
   echo ''
   echo -e "\e[36m#################"
   echo '# ON THE ROUTER #'
-  echo "#################\e[0m"
+  echo -e "#################\e[0m"
   echo ''
   echo -e "\e[33mConfigure an ACL...\e[0m"
   echo ''
   echo 'configure terminal'
-  echo " ip access-list extended acl_${RULENAME}_${DATESTAMP}"
-  echo " deny ip ${IP} ${WILDCARD} any"
-  echo " deny ip any ${IP} ${WILDCARD}"
+  echo -e " ip access-list extended acl_${RULENAME}_${DATESTAMP}"
+  echo -e " deny ip ${IP} ${WILDCARD} any"
+  echo -e " deny ip any ${IP} ${WILDCARD}"
   echo ' permit ip any any'
   echo ' permit ip any any'
   echo 'end'
   echo ''
   echo -e "\e[32mSTART the packet capture / monitoring...\e[0m"
   echo ''
-  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} size 512 max-size 512 circular"
-  echo "monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
-  echo "monitor capture point associate cap_${RULENAME}_${DATESTAMP} buf_${RULENAME}_${DATESTAMP}"
-  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} filter access-list acl_${RULENAME}_${DATESTAMP}"
-  echo "monitor capture point start cap_${RULENAME}_${DATESTAMP}"
+  echo -e "monitor capture buffer buf_${RULENAME}_${DATESTAMP} size 512 max-size 512 circular"
+  echo -e "monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
+  echo -e "monitor capture point associate cap_${RULENAME}_${DATESTAMP} buf_${RULENAME}_${DATESTAMP}"
+  echo -e "monitor capture buffer buf_${RULENAME}_${DATESTAMP} filter access-list acl_${RULENAME}_${DATESTAMP}"
+  echo -e "monitor capture point start cap_${RULENAME}_${DATESTAMP}"
   echo ''
   echo -e "\e[5;93mWAIT until you have captured what you want...\e[0m"
   echo ''
@@ -72,31 +72,31 @@ sleep 7
 (
   echo -e "\e[31mSTOP the packet capture / monitoring...\e[0m"
   echo ''
-  echo "monitor capture point stop cap_${RULENAME}_${DATESTAMP}"
+  echo -e "monitor capture point stop cap_${RULENAME}_${DATESTAMP}"
   echo ''
   echo -e "\e[33mExport to a friendly TFTP server...\e[0m"
   echo ''
-  echo "monitor capture buffer buf_${RULENAME}_${DATESTAMP} export tftp://${TFTPSERVER}/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo -e "monitor capture buffer buf_${RULENAME}_${DATESTAMP} export tftp://${TFTPSERVER}/buf_${RULENAME}_${DATESTAMP}.pcap"
   echo ''
   echo '\e[33mTidy up...\e[0m'
   echo ''
-  echo "no monitor capture buffer buf_${RULENAME}_${DATESTAMP}"
-  echo "no monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
+  echo -e "no monitor capture buffer buf_${RULENAME}_${DATESTAMP}"
+  echo -e "no monitor capture point ip cef cap_${RULENAME}_${DATESTAMP} gigabitethernet0/0 both"
   echo 'configure terminal'
-  echo " no ip access-list extended acl_${RULENAME}_${DATESTAMP}"
+  echo -e " no ip access-list extended acl_${RULENAME}_${DATESTAMP}"
   echo 'end'
   echo ''
   echo -e "\e[36m#################"
   echo '# ON A *NIX CLI #'
-  echo "#################\e[0m"
+  echo -e "#################\e[0m"
   echo ''
   echo -e "\e[33mUse tcpdump to view the packet capture file (on ${TFTPSERVER})...\e[0m"
   echo ''
-  echo "tcpdump -ttttnnr tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo -e "tcpdump -ttttnnr tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
   echo ''
   echo '\e[33mor...\e[0m'
   echo ''
-  echo "tcpdump -qns 0 -A -r tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
+  echo -e "tcpdump -qns 0 -A -r tftp/buf_${RULENAME}_${DATESTAMP}.pcap"
   echo ''
   echo '\e[32mDone!\e[0m'
   echo ''
